@@ -1,0 +1,32 @@
+# Syntax coloring for CNCShieldStepper
+
+# Datatypes (KEYWORD1)
+StepperAxis	KEYWORD1
+CNCShield	KEYWORD1
+
+# Objects (KEYWORD3)
+stepper	KEYWORD3
+X	KEYWORD3
+Y	KEYWORD3
+Z	KEYWORD3
+
+# Methods and functions (KEYWORD2)
+begin	KEYWORD2
+update	KEYWORD2
+enable	KEYWORD2
+disable	KEYWORD2
+stopAll	KEYWORD2
+isAnyMoving	KEYWORD2
+moveUp	KEYWORD2
+moveDown	KEYWORD2
+moveSteps	KEYWORD2
+moveTo	KEYWORD2
+stop	KEYWORD2
+setSpeed	KEYWORD2
+getSpeed	KEYWORD2
+reverseDirection	KEYWORD2
+getPosition	KEYWORD2
+setPosition	KEYWORD2
+resetPosition	KEYWORD2
+stepsRemaining	KEYWORD2
+isMoving	KEYWORD2
