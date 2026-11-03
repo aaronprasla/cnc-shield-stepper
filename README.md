@@ -4,6 +4,7 @@ Simple control of the X, Y and Z stepper motors on an Arduino CNC Shield V3.
 
 - Move a motor up, down, by a number of steps, or to a position
 - Tracks each motor's position
+- Limit switch protection and homing
 - Non-blocking, so all three axes run at the same time
 - A ready-made `stepper` object, so there is nothing to configure
 
@@ -56,8 +57,27 @@ applies to every axis, even horizontal ones.
 | `setPosition(n)` | Sets the current position without moving |
 | `resetPosition()` | Sets the current position to 0 |
 | `stepsRemaining()` | Steps left in a `moveSteps()` or `moveTo()` move |
-| `isMoving()` | True while the axis is moving |
+| `isMoving()` | True while the axis is moving, including while homing |
 | `update()` | Steps this one axis. Normally you use `stepper.update()` instead |
+
+### Limit switch functions
+
+| Function | What it does |
+|---|---|
+| `attachLimit(end, type)` | Turns on the limit switch. `end` is `LIMIT_DOWN` or `LIMIT_UP`. `type` is `NORMALLY_OPEN` (default) or `NORMALLY_CLOSED` |
+| `detachLimit()` | Turns the limit switch off |
+| `isLimitPressed()` | True while the switch is pressed |
+| `limitHit()` | True if the last move was stopped by the switch. Cleared when a new move starts |
+
+### Homing functions
+
+| Function | What it does |
+|---|---|
+| `home()` | Starts homing. Returns false if no limit switch is attached |
+| `isHoming()` | True while homing is running |
+| `isHomed()` | True once the axis has been homed |
+| `setHomingSpeed(sps)` | Speed used while homing (default 300) |
+| `setHomeBackoff(steps)` | Steps to back away from the switch after homing (default 200) |
 
 ## Board functions
 
@@ -70,6 +90,63 @@ applies to every axis, even horizontal ones.
 | `stepper.stopAll()` | Stops every axis |
 | `stepper.isAnyMoving()` | True if any axis is moving |
 
+## Limit switches
+
+Each axis has one limit switch input. Tell the axis which end of travel the
+switch is at:
+
+```cpp
+stepper.X.attachLimit(LIMIT_DOWN);                   // switch at the down end
+stepper.Z.attachLimit(LIMIT_UP, NORMALLY_CLOSED);    // switch at the up end
+```
+
+While the switch is pressed:
+
+- Moving toward the switch is blocked. The axis stops right away and any
+  move in progress is cancelled. `limitHit()` becomes true.
+- Moving away from the switch is always allowed, so the axis can back off.
+- If the switch is already pressed, a move toward it does nothing.
+
+An axis without `attachLimit()` has no limit protection.
+
+### Wiring
+
+Connect the switch between the axis' limit pin and GND. The library turns on
+the internal pull-up resistor, so no extra parts are needed.
+
+| Axis | Limit pin |
+|---|---|
+| X | 9 |
+| Y | 10 |
+| Z | 11 |
+
+A normally closed switch is the safer choice, because a broken wire counts as
+pressed and stops the axis. Use `NORMALLY_CLOSED` when wiring one.
+
+## Homing
+
+Homing finds a known starting point using the limit switch:
+
+1. The axis moves toward the switch at the homing speed.
+2. When the switch triggers, the position is set to 0. Position 0 is the
+   switch.
+3. The axis backs away from the switch by the home backoff distance.
+
+```cpp
+stepper.X.attachLimit(LIMIT_DOWN);
+stepper.X.setHomingSpeed(300);
+stepper.X.setHomeBackoff(200);
+stepper.X.home();            // starts homing, then keep calling update()
+```
+
+Homing doesn't block. Keep calling `stepper.update()` and wait for
+`isHoming()` to become false. Afterwards `isHomed()` is true and the axis sits
+at the backoff position. For a switch at the up end the backoff position is
+negative, because the axis backs away downward.
+
+If the switch never triggers, the axis keeps moving toward it until you call
+`stop()`.
+
 ## Things to know
 
 - **Call a move function once, not every loop.** `moveSteps()` and `moveTo()`
@@ -79,23 +156,24 @@ applies to every axis, even horizontal ones.
   and `stop()` are safe to call repeatedly.
 - **Position is counted, not measured.** The position is the number of steps
   sent to the driver. The shield has no feedback, so if a motor stalls or skips
-  steps, the position will be wrong.
+  steps, the position will be wrong. Homing resets it.
 - **Speed limit.** The speed is limited to 4000 steps per second per axis. The
   real maximum also depends on your motor, driver, supply voltage and load.
 - **A new move replaces the old one.** Calling a move function while an axis is
   moving changes what it does. `moveSteps()` is relative to the current
-  position, not the old target.
-- **Limit switches are not supported yet.** The motors will not stop at the end
-  of travel on their own.
+  position, not the old target. Starting a move or calling `stop()` during
+  homing cancels homing.
+- **One limit switch per axis.** The shield has one input per axis, so each
+  axis protects one end of travel.
 
 ## Pins (CNC Shield V3)
 
-| Axis | Step | Direction |
-|---|---|---|
-| X | 2 | 5 |
-| Y | 3 | 6 |
-| Z | 4 | 7 |
-| Enable (all axes) | 8 | |
+| Axis | Step | Direction | Limit switch |
+|---|---|---|---|
+| X | 2 | 5 | 9 |
+| Y | 3 | 6 | 10 |
+| Z | 4 | 7 | 11 |
+| Enable (all axes) | 8 | | |
 
 ## Hardware tips
 
@@ -114,6 +192,8 @@ applies to every axis, even horizontal ones.
 - **1_BasicMove**: one motor up, stop, down, stop
 - **2_MoveSteps**: `moveSteps()`, `moveTo()` and position printing
 - **3_ThreeAxes**: X, Y and Z moving together
+- **4_LimitSwitch**: stops at a limit switch and backs away
+- **5_Homing**: homes the X axis, then moves between two positions
 
 ## License
 

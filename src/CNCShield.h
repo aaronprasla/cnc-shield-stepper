@@ -8,9 +8,9 @@
 //   stepper.update();           // in loop(), steps every axis
 //
 // Pins (CNC Shield V3):
-//   X: step 2, direction 5
-//   Y: step 3, direction 6
-//   Z: step 4, direction 7
+//   X: step 2, direction 5, limit switch 9
+//   Y: step 3, direction 6, limit switch 10
+//   Z: step 4, direction 7, limit switch 11
 //   All drivers share one enable pin: 8
 
 #pragma once
