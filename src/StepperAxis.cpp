@@ -6,7 +6,7 @@ static const long MAX_SPEED = 3000;
 static const long DEFAULT_SPEED = 1000;
 
 // Homing defaults.
-static const long DEFAULT_HOMING_SPEED = 300;
+static const long DEFAULT_HOMING_SPEED = 1000;
 static const long DEFAULT_HOME_BACKOFF = 200;
 
 // Length of the step pulse in microseconds. Drivers need at least 2.

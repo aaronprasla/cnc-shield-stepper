@@ -76,7 +76,7 @@ applies to every axis, even horizontal ones.
 | `home()` | Starts homing. Returns false if no limit switch is attached |
 | `isHoming()` | True while homing is running |
 | `isHomed()` | True once the axis has been homed |
-| `setHomingSpeed(sps)` | Speed used while homing (default 300) |
+| `setHomingSpeed(sps)` | Speed used while homing (default 1000) |
 | `setHomeBackoff(steps)` | Steps to back away from the switch after homing (default 200) |
 
 ## Board functions
@@ -134,7 +134,7 @@ Homing finds a known starting point using the limit switch:
 
 ```cpp
 stepper.X.attachLimit(LIMIT_DOWN);
-stepper.X.setHomingSpeed(300);
+stepper.X.setHomingSpeed(1000);
 stepper.X.setHomeBackoff(200);
 stepper.X.home();            // starts homing, then keep calling update()
 ```
