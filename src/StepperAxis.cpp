@@ -2,7 +2,7 @@
 
 // Speed limits in steps per second.
 static const long MIN_SPEED = 1;
-static const long MAX_SPEED = 4000;
+static const long MAX_SPEED = 3000;
 static const long DEFAULT_SPEED = 1000;
 
 // Homing defaults.

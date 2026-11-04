@@ -50,7 +50,7 @@ applies to every axis, even horizontal ones.
 | `moveSteps(n)` | Moves `n` steps from the current position. Negative moves down |
 | `moveTo(position)` | Moves to an absolute position |
 | `stop()` | Stops stepping. The motor keeps holding its position |
-| `setSpeed(sps)` | Sets the speed in steps per second (1 to 4000) |
+| `setSpeed(sps)` | Sets the speed in steps per second (1 to 3000) |
 | `getSpeed()` | Returns the speed in steps per second |
 | `reverseDirection(true)` | Flips the physical direction if the motor turns the wrong way |
 | `getPosition()` | Returns the current position in steps |
@@ -157,7 +157,7 @@ If the switch never triggers, the axis keeps moving toward it until you call
 - **Position is counted, not measured.** The position is the number of steps
   sent to the driver. The shield has no feedback, so if a motor stalls or skips
   steps, the position will be wrong. Homing resets it.
-- **Speed limit.** The speed is limited to 4000 steps per second per axis. The
+- **Speed limit.** The speed is limited to 3000 steps per second per axis. The
   real maximum also depends on your motor, driver, supply voltage and load.
 - **A new move replaces the old one.** Calling a move function while an axis is
   moving changes what it does. `moveSteps()` is relative to the current
