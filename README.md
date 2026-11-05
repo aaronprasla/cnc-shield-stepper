@@ -5,6 +5,7 @@ Simple control of the X, Y and Z stepper motors on an Arduino CNC Shield V3.
 - Move a motor up, down, by a number of steps, or to a position
 - Tracks each motor's position
 - Limit switch protection and homing
+- Software travel endpoints with `setEndpoints()`
 - Non-blocking, so all three axes run at the same time
 - A ready-made `stepper` object, so there is nothing to configure
 
@@ -68,6 +69,14 @@ applies to every axis, even horizontal ones.
 | `detachLimit()` | Turns the limit switch off |
 | `isLimitPressed()` | True while the switch is pressed |
 | `limitHit()` | True if the last move was stopped by the switch. Cleared when a new move starts |
+
+### Endpoint functions
+
+| Function | What it does |
+|---|---|
+| `setEndpoints(low, high)` | Sets the low and high endpoints of travel in steps. The smaller value becomes the low endpoint |
+| `clearEndpoints()` | Turns the endpoints off, so the axis can move anywhere again |
+| `endpointHit()` | True if the last move was stopped by an endpoint. Cleared when a new move starts |
 
 ### Homing functions
 
@@ -147,6 +156,36 @@ negative, because the axis backs away downward.
 If the switch never triggers, the axis keeps moving toward it until you call
 `stop()`.
 
+## Endpoints
+
+Endpoints are software limits for the range of travel, so no wiring is
+needed. You set them in steps, relative to position 0:
+
+```cpp
+stepper.X.setEndpoints(0, 2000);  // travel is limited to steps 0 to 2000
+```
+
+With endpoints set:
+
+- Moving past an endpoint is blocked, just like at a limit switch. The axis
+  stops right away and `endpointHit()` becomes true. 
+- `moveTo()` clamps its target to the range. `moveTo(5000)` moves to 2000.
+- `moveUp()` and `moveDown()` stop at the endpoint.
+- Homing also stops if the limit switch is beyond an endpoint.
+- If you are caught outside of an endpoint when you set it, you can move
+  back into the endpoint range, but not away from the endpoint.
+
+The endpoints are only as good as the position tracking. If the motor
+stalls, the position is wrong and the endpoints no longer match the
+machine. A physical limit switch is still the safer protection, and
+endpoints don't replace one.
+
+The arguments may be given in either order; the smaller value always
+becomes the low endpoint.
+
+`clearEndpoints()` turns the endpoints off, so the axis can move anywhere
+again.
+
 ## Things to know
 
 - **Call a move function once, not every loop.** `moveSteps()` and `moveTo()`
@@ -194,6 +233,7 @@ If the switch never triggers, the axis keeps moving toward it until you call
 - **3_ThreeAxes**: X, Y and Z moving together
 - **4_LimitSwitch**: stops at a limit switch and backs away
 - **5_Homing**: homes the X axis, then moves between two positions
+- **6_Endpoints**: sets software endpoints and shows the motor stopping at them
 
 ## License
 

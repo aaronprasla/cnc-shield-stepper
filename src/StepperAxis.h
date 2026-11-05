@@ -100,6 +100,21 @@ public:
   // It is cleared when a new move starts.
   bool limitHit() const;
 
+  // Endpoints
+  // Endpoints are software limits for the range of travel. No wiring is
+  // needed. Moving past one is blocked, just like at a limit switch.
+
+  // Sets the low and high endpoints of travel, in steps. The smaller value
+  // becomes the low endpoint. Example: setEndpoints(0, 2000)
+  void setEndpoints(long low, long high);
+
+  // Turns the endpoints off, so the axis can move anywhere again.
+  void clearEndpoints();
+
+  // Returns true if the last move was stopped by an endpoint.
+  // It is cleared when a new move starts.
+  bool endpointHit() const;
+
   // Homing
   // Homing moves toward the limit switch, sets the position to 0 where the
   // switch triggers, then backs away. Needs attachLimit() first.
@@ -144,6 +159,10 @@ private:
   bool _limitUp;               // true if the switch is at the up end
   bool _limitNormallyClosed;   // switch wiring type
   bool _limitHit;              // last move was stopped by the switch
+  bool _endpointsEnabled;      // true after setEndpoints()
+  long _lowEndpoint;           // low end of travel in steps
+  long _highEndpoint;          // high end of travel in steps
+  bool _endpointHit;           // last move was stopped by an endpoint
   bool _homed;                 // position 0 is the switch
 
   long _homeBackoff;           // steps to back away after homing

@@ -23,6 +23,10 @@ StepperAxis::StepperAxis(uint8_t stepPin, uint8_t dirPin, uint8_t limitPin)
     _limitUp(false),
     _limitNormallyClosed(false),
     _limitHit(false),
+    _endpointsEnabled(false),
+    _lowEndpoint(0),
+    _highEndpoint(0),
+    _endpointHit(false),
     _homed(false),
     _homeBackoff(DEFAULT_HOME_BACKOFF),
     _position(0),
@@ -44,12 +48,14 @@ void StepperAxis::begin() {
 void StepperAxis::moveUp() {
   _continuousUp = true;
   _limitHit = false;
+  _endpointHit = false;
   _mode = CONTINUOUS;
 }
 
 void StepperAxis::moveDown() {
   _continuousUp = false;
   _limitHit = false;
+  _endpointHit = false;
   _mode = CONTINUOUS;
 }
 
@@ -59,6 +65,13 @@ void StepperAxis::moveSteps(long steps) {
 
 void StepperAxis::moveTo(long position) {
   _limitHit = false;
+  _endpointHit = false;
+
+  // A target outside the endpoints is clamped to the range.
+  if (_endpointsEnabled) {
+    position = constrain(position, _lowEndpoint, _highEndpoint);
+  }
+
   _target = position;
   _mode = (_target == _position) ? IDLE : TARGET;
 }
@@ -152,6 +165,29 @@ bool StepperAxis::limitPressed() const {
   return _limitNormallyClosed ? high : !high;
 }
 
+// Endpoints
+
+void StepperAxis::setEndpoints(long low, long high) {
+  if (low > high) {
+    long temp = low;
+    low = high;
+    high = temp;
+  }
+
+  _lowEndpoint = low;
+  _highEndpoint = high;
+  _endpointsEnabled = true;
+  _endpointHit = false;
+}
+
+void StepperAxis::clearEndpoints() {
+  _endpointsEnabled = false;
+}
+
+bool StepperAxis::endpointHit() const {
+  return _endpointHit;
+}
+
 // Homing
 
 bool StepperAxis::home() {
@@ -160,6 +196,7 @@ bool StepperAxis::home() {
   }
 
   _limitHit = false;
+  _endpointHit = false;
   _homed = false;
   _mode = HOMING_SEEK;
   return true;
@@ -233,6 +270,15 @@ void StepperAxis::update() {
       _mode = IDLE;
       _limitHit = true;
     }
+    return;
+  }
+
+  // Endpoints block movement past them, in either direction.
+  if (_endpointsEnabled &&
+      ((up && _position >= _highEndpoint) ||
+       (!up && _position <= _lowEndpoint))) {
+    _mode = IDLE;
+    _endpointHit = true;
     return;
   }
 
